@@ -21,7 +21,7 @@ extension DurationFormatExt on Duration {
     final sStr = _getDisplayTimeSecond(millisecondTime);
     final msStr = _getDisplayTimeMillisecond(millisecondTime);
     var result = '';
-    final hours = formatPart.contains('HH');
+    final hours = formatPart.contains('HH') && hoursStr != '00';
     final minute = formatPart.contains('MM');
     final second = formatPart.contains('SS');
     final milliSecond = formatPart.contains('MS');

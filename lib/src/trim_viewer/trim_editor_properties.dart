@@ -49,6 +49,8 @@ class TrimEditorProperties {
   /// total duration of the video.
   final int sideTapSize;
 
+  final double sideWidth;
+
   /// Helps defining the Trim Editor properties.
   ///
   /// A better look at the structure of the **Trim Viewer**:
@@ -102,6 +104,7 @@ class TrimEditorProperties {
     this.borderWidth = 3.0,
     this.scrubberWidth = 1.0,
     this.borderRadius = 4.0,
+    this.sideWidth = 3.0,
     this.circlePaintColor = Colors.white,
     this.borderPaintColor = Colors.white,
     this.scrubberPaintColor = Colors.white,

@@ -48,6 +48,12 @@ class TrimEditorPainter extends CustomPainter {
   /// `Colors.white`.
   final Color scrubberPaintColor;
 
+  final double sideWidth;
+
+  final double videoStartPos;
+
+  final double videoEndPos;
+
   /// For drawing the trim editor slider
   ///
   /// The required parameters are [startPos], [endPos]
@@ -106,11 +112,14 @@ class TrimEditorPainter extends CustomPainter {
     required this.startPos,
     required this.endPos,
     required this.scrubberAnimationDx,
+    required this.videoStartPos,
+    required this.videoEndPos,
     this.startCircleSize = 0.5,
     this.endCircleSize = 0.5,
     this.borderRadius = 4,
     this.borderWidth = 3,
     this.scrubberWidth = 1,
+    this.sideWidth = 3,
     this.showScrubber = true,
     this.borderPaintColor = Colors.white,
     this.circlePaintColor = Colors.white,
@@ -137,11 +146,27 @@ class TrimEditorPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    final rect = Rect.fromPoints(startPos, endPos);
-    final roundedRect = RRect.fromRectAndRadius(
-      rect,
-      Radius.circular(borderRadius),
+    var sidePaint = Paint()
+      ..color = borderPaintColor
+      ..strokeWidth = borderWidth
+      ..style = PaintingStyle.fill
+      ..strokeCap = StrokeCap.round;
+
+    var textPaint = TextPainter(
+      textAlign: TextAlign.left,
+      textDirection: TextDirection.ltr,
     );
+
+    final rect = Rect.fromPoints(startPos, endPos);
+
+    final leftRRect = RRect.fromLTRBAndCorners(
+        startPos.dx - sideWidth, 0, startPos.dx, endPos.dy,
+        topLeft: Radius.circular(borderRadius),
+        bottomLeft: Radius.circular(borderRadius));
+    final rightRRect = RRect.fromLTRBAndCorners(
+        endPos.dx, 0, endPos.dx + sideWidth, endPos.dy,
+        topRight: Radius.circular(borderRadius),
+        bottomRight: Radius.circular(borderRadius));
 
     if (showScrubber) {
       if (scrubberAnimationDx.toInt() > startPos.dx.toInt()) {
@@ -153,7 +178,30 @@ class TrimEditorPainter extends CustomPainter {
       }
     }
 
-    canvas.drawRRect(roundedRect, borderPaint);
+    canvas.drawRRect(leftRRect, sidePaint);
+    canvas.drawRRect(leftRRect, borderPaint);
+    canvas.drawRRect(rightRRect, sidePaint);
+
+    canvas.drawRRect(rightRRect, borderPaint);
+
+    canvas.drawRect(rect, borderPaint);
+
+    textPaint.text = TextSpan(
+        text: '${((videoEndPos - videoStartPos) / 1000).toStringAsFixed(1)}s',
+        style: TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            background: Paint()
+              ..strokeWidth = 12
+              ..color = Colors.black45
+              ..style = PaintingStyle.fill));
+    textPaint.layout();
+    textPaint.paint(
+        canvas,
+        startPos +
+            Offset(borderWidth / 2,
+                endPos.dy - textPaint.height - borderWidth / 2));
+
     // Paint start holder
     canvas.drawCircle(
         startPos + Offset(0, endPos.dy / 2), startCircleSize, circlePaint);

@@ -61,6 +61,7 @@ class ScrollableThumbnailViewer extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         controller: scrollController,
+        physics: const ClampingScrollPhysics(),
         child: SizedBox(
           width: numberOfThumbnails * thumbnailHeight,
           height: thumbnailHeight,
