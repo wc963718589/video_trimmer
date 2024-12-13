@@ -55,6 +55,7 @@ class FixedThumbnailViewer extends StatelessWidget {
           videoPath: videoFile.path,
           videoDuration: videoDuration,
           numberOfThumbnails: numberOfThumbnails,
+          thumbnailHeight: thumbnailHeight,
           quality: quality,
           onThumbnailLoadingComplete: onThumbnailLoadingComplete),
       builder: (context, snapshot) {
@@ -77,13 +78,10 @@ class FixedThumbnailViewer extends StatelessWidget {
                         fit: fit,
                       ),
                     ),
-                    index < imageBytes.length
-                        ? FadeInImage(
-                            placeholder: MemoryImage(kTransparentImage),
+                    if (index < imageBytes.length) Image(
                             image: MemoryImage(imageBytes[index]!),
                             fit: fit,
-                          )
-                        : const SizedBox(),
+                          ) else const SizedBox(),
                   ],
                 ),
               ),

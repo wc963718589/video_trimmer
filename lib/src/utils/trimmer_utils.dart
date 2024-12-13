@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 /// Formats a [Duration] object to a human-readable string.
 ///
@@ -25,8 +26,7 @@ String _formatDuration(Duration duration) {
 int _mapQualityToFFmpegScale(int quality) {
   if (quality < 1) return 1; // Best quality
   if (quality > 100) return 31; // Worst quality
-  return ((101 - quality) / 3.25)
-      .toInt()
+  return (101 - quality) ~/ 3.25
       .clamp(1, 31); // Scale 1 (best) to 31 (worst)
 }
 
@@ -72,6 +72,7 @@ Stream<List<Uint8List?>> generateThumbnail({
   required String videoPath,
   required int videoDuration,
   required int numberOfThumbnails,
+  required double thumbnailHeight,
   required int quality,
   required VoidCallback onThumbnailLoadingComplete,
 }) async* {
@@ -98,31 +99,41 @@ Stream<List<Uint8List?>> generateThumbnail({
 
       // Calculate the timestamp for the thumbnail in milliseconds
       final timestamp = (eachPart * i).toInt();
+
+      bytes = await VideoThumbnail.thumbnailData(
+          video: videoPath,
+          imageFormat: ImageFormat.JPEG,
+          maxWidth: thumbnailHeight.toInt() * 3,
+          maxHeight: thumbnailHeight.toInt() * 3,
+          timeMs: timestamp,
+          quality: quality
+      );
       final formattedTimestamp =
           _formatDuration(Duration(milliseconds: timestamp));
-      final thumbnailPath = "${tmpDir.path}/thumbnail_$i.jpg";
-
-      // Delete the file if it already exists
-      if (File(thumbnailPath).existsSync()) {
-        await File(thumbnailPath).delete();
-      }
-
-      // Create FFmpeg command to extract a resized, lower-quality thumbnail
-      final command = [
-        '-ss $formattedTimestamp', // Seek to timestamp
-        '-i "$videoPath"', // Input downscaled video
-        '-frames:v 1',
-        '-q:v ${_mapQualityToFFmpegScale(quality)}', // Lower quality
-        '"$thumbnailPath"', // Output file
-      ].join(' ');
-
-      // Execute the FFmpeg command
-      await FFmpegKit.execute(command);
-
-      // Read the generated thumbnail file
-      if (File(thumbnailPath).existsSync()) {
-        bytes = await File(thumbnailPath).readAsBytes();
-      }
+      // final thumbnailPath = "${tmpDir.path}/thumbnail_$i.jpg";
+      //
+      // // Delete the file if it already exists
+      // if (File(thumbnailPath).existsSync()) {
+      //   await File(thumbnailPath).delete();
+      // }
+      //
+      // // Create FFmpeg command to extract a resized, lower-quality thumbnail
+      // final command = [
+      //   '-ss $formattedTimestamp', // Seek to timestamp
+      //   '-i "$videoPath"', // Input downscaled video
+      //   '-frames:v 1',
+      //   '-q:v ${_mapQualityToFFmpegScale(quality)}', // Lower quality
+      //   '"$thumbnailPath"', // Output file
+      // ].join(' ');
+      //
+      //
+      // // Execute the FFmpeg command
+      // await FFmpegKit.execute(command);
+      //
+      // // Read the generated thumbnail file
+      // if (File(thumbnailPath).existsSync()) {
+      //   bytes = await File(thumbnailPath).readAsBytes();
+      // }
 
       if (bytes != null) {
         log('Timestamp: $formattedTimestamp | Size: ${(bytes.length / 1000).toStringAsFixed(2)} kB');
