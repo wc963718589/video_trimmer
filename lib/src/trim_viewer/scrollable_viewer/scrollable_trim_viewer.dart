@@ -26,6 +26,8 @@ class ScrollableTrimViewer extends StatefulWidget {
   /// For defining the total trimmer area height
   final double viewerHeight;
 
+  final Duration minVideoLength;
+
   /// For defining the maximum length of the output video.
   final Duration maxVideoLength;
 
@@ -121,6 +123,7 @@ class ScrollableTrimViewer extends StatefulWidget {
   const ScrollableTrimViewer({
     super.key,
     required this.trimmer,
+    this.minVideoLength = const Duration(milliseconds: 0),
     required this.maxVideoLength,
     required this.onThumbnailLoadingComplete,
     this.viewerWidth = 50 * 8,
@@ -176,6 +179,7 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
 
   double? fraction;
   double? maxLengthPixels;
+  double? minLengthPixels;
 
   ScrollableThumbnailViewer? thumbnailWidget;
 
@@ -371,6 +375,7 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
         log('trimmerFraction: $trimmerFraction');
         final trimmerCover = trimmerFraction * trimAreaLength;
         maxLengthPixels = trimmerCover;
+        minLengthPixels = widget.minVideoLength.inMilliseconds / preciseAreaDuration.inMilliseconds * trimAreaLength;
         _endPos = Offset(trimmerCover, thumbnailHeight);
         _endFraction = _endPos.dx / _thumbnailViewerW;
         log('START: $_startPos, END: $_endPos');
@@ -509,7 +514,7 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
     if (_dragType == EditorDragType.left) {
       _startCircleSize = widget.editorProperties.circleSizeOnDrag;
       if ((_startPos.dx + details.delta.dx >= 0) &&
-          (_startPos.dx + details.delta.dx <= _endPos.dx) &&
+          (_endPos.dx - _startPos.dx - details.delta.dx >= minLengthPixels!) &&
           !(_endPos.dx - _startPos.dx - details.delta.dx > maxLengthPixels!)) {
         _startPos += details.delta;
         _onStartDragged();
@@ -527,7 +532,7 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
     } else {
       _endCircleSize = widget.editorProperties.circleSizeOnDrag;
       if ((_endPos.dx + details.delta.dx <= _thumbnailViewerW) &&
-          (_endPos.dx + details.delta.dx >= _startPos.dx) &&
+          (_endPos.dx - _startPos.dx + details.delta.dx >= minLengthPixels!) &&
           !(_endPos.dx - _startPos.dx + details.delta.dx > maxLengthPixels!)) {
         _endPos += details.delta;
         _onEndDragged();

@@ -36,6 +36,8 @@ class TrimViewer extends StatefulWidget {
   /// By default it is set to `ViewerType.auto`.
   final ViewerType type;
 
+  final Duration minVideoLength;
+
   /// For defining the maximum length of the output video.
   ///
   /// **NOTE:** When explicitly setting the `type` to `scrollable`,
@@ -170,6 +172,7 @@ class TrimViewer extends StatefulWidget {
   const TrimViewer({
     super.key,
     required this.trimmer,
+    this.minVideoLength = const Duration(milliseconds: 0),
     this.maxVideoLength = const Duration(milliseconds: 0),
     this.type = ViewerType.auto,
     this.viewerWidth = 50 * 8,
@@ -222,6 +225,7 @@ class _TrimViewerState extends State<TrimViewer> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final scrollableViewer = ScrollableTrimViewer(
       trimmer: widget.trimmer,
+      minVideoLength: widget.minVideoLength,
       maxVideoLength: widget.maxVideoLength,
       viewerWidth: widget.viewerWidth,
       viewerHeight: widget.viewerHeight,
@@ -243,6 +247,7 @@ class _TrimViewerState extends State<TrimViewer> with TickerProviderStateMixin {
 
     final fixedTrimViewer = FixedTrimViewer(
       trimmer: widget.trimmer,
+      minVideoLength: widget.minVideoLength,
       maxVideoLength: widget.maxVideoLength,
       viewerWidth: widget.viewerWidth,
       viewerHeight: widget.viewerHeight,

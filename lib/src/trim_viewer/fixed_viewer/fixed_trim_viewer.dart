@@ -24,6 +24,8 @@ class FixedTrimViewer extends StatefulWidget {
   /// For defining the total trimmer area height
   final double viewerHeight;
 
+  final Duration minVideoLength;
+
   /// For defining the maximum length of the output video.
   final Duration maxVideoLength;
 
@@ -119,6 +121,7 @@ class FixedTrimViewer extends StatefulWidget {
     required this.onThumbnailLoadingComplete,
     this.viewerWidth = 50.0 * 8,
     this.viewerHeight = 50,
+    this.minVideoLength = const Duration(milliseconds: 0),
     this.maxVideoLength = const Duration(milliseconds: 0),
     this.showDuration = true,
     this.durationTextStyle = const TextStyle(color: Colors.white),
@@ -162,6 +165,7 @@ class _FixedTrimViewerState extends State<FixedTrimViewer>
 
   double? fraction;
   double? maxLengthPixels;
+  double? minLengthPixels;
 
   FixedThumbnailViewer? thumbnailWidget;
 
@@ -228,6 +232,8 @@ class _FixedTrimViewerState extends State<FixedTrimViewer>
         } else {
           maxLengthPixels = _thumbnailViewerW;
         }
+        minLengthPixels = widget.minVideoLength.inMilliseconds /
+            totalDuration.inMilliseconds * _thumbnailViewerW;
 
         _videoEndPos = fraction != null
             ? _videoDuration.toDouble() * fraction!
@@ -347,7 +353,7 @@ class _FixedTrimViewerState extends State<FixedTrimViewer>
     if (_dragType == EditorDragType.left) {
       _startCircleSize = widget.editorProperties.circleSizeOnDrag;
       if ((_startPos.dx + details.delta.dx >= 0) &&
-          (_startPos.dx + details.delta.dx <= _endPos.dx) &&
+          (_endPos.dx - _startPos.dx - details.delta.dx >= minLengthPixels!) &&
           !(_endPos.dx - _startPos.dx - details.delta.dx > maxLengthPixels!)) {
         _startPos += details.delta;
         _onStartDragged();
@@ -365,7 +371,7 @@ class _FixedTrimViewerState extends State<FixedTrimViewer>
     } else {
       _endCircleSize = widget.editorProperties.circleSizeOnDrag;
       if ((_endPos.dx + details.delta.dx <= _thumbnailViewerW) &&
-          (_endPos.dx + details.delta.dx >= _startPos.dx) &&
+          (_endPos.dx - _startPos.dx + details.delta.dx >= minLengthPixels!) &&
           !(_endPos.dx - _startPos.dx + details.delta.dx > maxLengthPixels!)) {
         _endPos += details.delta;
         _onEndDragged();
