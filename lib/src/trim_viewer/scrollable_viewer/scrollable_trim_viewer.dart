@@ -586,20 +586,44 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
   }
 
   /// Drag gesture ended, update UI accordingly.
-  void _onDragEnd(DragEndDetails details) {
+  Future<void> _onDragEnd(DragEndDetails details) async {
     log('onDragEnd');
     _scrollStartTimer?.cancel();
     _scrollingTimer?.cancel();
-    setState(() {
+    if (!_allowDrag) {
+      double dragVelocity = details.velocity.pixelsPerSecond.dx;
+      double targetOffset = _scrollController.offset - dragVelocity / 3;
+
+      // 确保目标滚动位置在有效范围内
+      if (targetOffset < 0) {
+        targetOffset = 0;
+      } else if (targetOffset > _scrollController.position.maxScrollExtent) {
+        targetOffset = _scrollController.position.maxScrollExtent;
+      }
+
+      await _scrollController.animateTo(targetOffset, duration: const Duration(milliseconds: 100), curve: Curves.decelerate);
+
+      final durationChange = (_scrollController.position.pixels /
+          _scrollController.position.maxScrollExtent) *
+          _remainingDuration;
+
+      _videoStartPos = (_trimmerAreaDuration * _startFraction) + durationChange;
+      _videoEndPos = (_trimmerAreaDuration * _endFraction) + durationChange;
+      widget.onChangeStart!(_videoStartPos);
+      widget.onChangeEnd!(_videoEndPos);
+    }
+
+    setState(() async {
       _startCircleSize = widget.editorProperties.circleSize;
       _endCircleSize = widget.editorProperties.circleSize;
       if (_dragType == EditorDragType.right) {
-        videoPlayerController
+        await videoPlayerController
             .seekTo(Duration(milliseconds: _videoEndPos.toInt()));
       } else {
-        videoPlayerController
+        await videoPlayerController
             .seekTo(Duration(milliseconds: _videoStartPos.toInt()));
       }
+      _animationController!.reset();
     });
   }
 
