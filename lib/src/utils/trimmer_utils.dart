@@ -4,8 +4,9 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
+import 'package:get_video_thumbnail/get_video_thumbnail.dart';
+import 'package:get_video_thumbnail/index.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 
 /// Formats a [Duration] object to a human-readable string.
 ///
